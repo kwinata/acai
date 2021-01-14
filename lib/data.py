@@ -233,6 +233,7 @@ _NCLASS = {
     'lines32': 10,
     'mnist32': 10,
     'svhn32': 10,
+    'car_racing': 1,
 }
 
 _DATASETS = {
@@ -331,6 +332,16 @@ _DATASETS = {
             shuffle=False,
             repeat=False,
             size=(32, 32, 3)),
+    'car_racing_train': functools.partial(
+            input_fn_record,
+            _parser_all,
+            [os.path.join(DATA_DIR, 'car_racing-train.tfrecord')],
+            size=(64, 64, 3)),
+    'car_racing_test': functools.partial(
+            input_fn_record,
+            _parser_all,
+            [os.path.join(DATA_DIR, 'car_racing-train.tfrecord')],
+            size=(64, 64, 3)),
     'lines32_train': functools.partial(input_lines, size=(32, 32, 1)),
     'lines32_test': functools.partial(input_lines, limit=5000,
                                          size=(32, 32, 1)),
