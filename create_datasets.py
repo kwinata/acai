@@ -160,6 +160,8 @@ def _load_car_racing():
             w = png.Writer(64, 64, greyscale=False)
             w.write(imf, img)
             imgs.append(imf.read())
+    np.savez("example_img.npz", img=imgs[-1])
+    exit(0)
     return dict(train={'images': _encode_png(np.array(imgs)), 'labels': np.zeros(len(imgs), int)})
     
 def _int64_feature(value):

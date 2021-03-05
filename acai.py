@@ -27,6 +27,7 @@ from absl import app
 from absl import flags
 
 import tensorflow as tf
+import numpy as np
 from lib import data, layers, train, utils, classifiers, eval
 
 FLAGS = flags.FLAGS
@@ -123,6 +124,45 @@ class ACAI(train.AE):
 
         return ops
 
+
+    def encode(self, latent, depth, scales):
+        with open("example_img.npz", "rb") as f:
+            img = np.load(f)['img']
+        with tf.Graph().as_default():
+            img_tensor = tf.constant(img)
+            imgs = tf.image.resize_bicubic([img_tensor], [32, 32])
+            x = tf.placeholder(tf.float32,
+                               [None, self.height, self.width, self.colors], 'x')
+            l = tf.placeholder(tf.float32, [None, self.nclass], 'label')
+            h = tf.placeholder(
+                tf.float32,
+                [None, self.height >> scales, self.width >> scales, latent], 'h')
+
+            def encoder(x):
+                return layers.encoder(x, scales, depth, latent, 'ae_enc')
+
+            def decoder(h):
+                v = layers.decoder(h, scales, depth, self.colors, 'ae_dec')
+                return v
+
+
+            encode = encoder(x)
+            decode = decoder(h)
+            ae = decoder(encode) 
+            global_step = tf.train.get_or_create_global_step()
+            rec_imgs = []
+            with tf.train.MonitoredTrainingSession(checkpoint_dir=self.checkpoint_dir) as sess_new:
+                imgs_value = sess_new.run(imgs)
+                reconstruction = sess_new.run(ae, feed_dict={x: imgs_value})
+                rec_imgs.append(imgs_value)
+                rec_imgs.append(reconstruction)
+            from lib.utils import to_png
+            ori_png = to_png(rec_imgs[0][0])
+            with open("ori_img.png", "wb") as f:
+                f.write(ori_png)
+            rec_png = to_png(rec_imgs[1][0])
+            with open("example_img.png", "wb") as f:
+                f.write(rec_png)
 
 def main(argv):
     del argv  # Unused.
