@@ -336,7 +336,7 @@ _DATASETS = {
             input_fn_record,
             _parser_all,
             [os.path.join(DATA_DIR, 'car_racing-train.tfrecord')],
-            resize=(32, 32),
+            resize=(64, 64),
             size=(64, 64, 3)),
     'car_racing_test': functools.partial(
             input_fn_record,
@@ -344,7 +344,7 @@ _DATASETS = {
             [os.path.join(DATA_DIR, 'car_racing-train.tfrecord')],
             repeat=False,
             shuffle=False,
-            resize=(32, 32),
+            resize=(64, 64),
             size=(64, 64, 3)),
     'lines32_train': functools.partial(input_lines, size=(32, 32, 1)),
     'lines32_test': functools.partial(input_lines, limit=5000,

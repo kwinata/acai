@@ -152,16 +152,6 @@ def _load_car_racing():
             img = img * 255
             img = img.astype(int)
             imgs.append(img)
-            continue
-            img = np.reshape(img, (-1, 64*3))*255
-            img = img.astype(int)
-            img = img.tolist()
-            imf = io.BytesIO()
-            w = png.Writer(64, 64, greyscale=False)
-            w.write(imf, img)
-            imgs.append(imf.read())
-    np.savez("example_img.npz", img=imgs[-1])
-    exit(0)
     return dict(train={'images': _encode_png(np.array(imgs)), 'labels': np.zeros(len(imgs), int)})
     
 def _int64_feature(value):

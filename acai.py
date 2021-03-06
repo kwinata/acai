@@ -126,11 +126,8 @@ class ACAI(train.AE):
 
 
     def encode(self, latent, depth, scales):
-        with open("example_img.npz", "rb") as f:
-            img = np.load(f)['img']
         with tf.Graph().as_default():
-            img_tensor = tf.constant(img)
-            imgs = tf.image.resize_bicubic([img_tensor], [32, 32])
+            data_in = self.train_data.make_one_shot_iterator().get_next()
             x = tf.placeholder(tf.float32,
                                [None, self.height, self.width, self.colors], 'x')
             l = tf.placeholder(tf.float32, [None, self.nclass], 'label')
@@ -152,9 +149,10 @@ class ACAI(train.AE):
             global_step = tf.train.get_or_create_global_step()
             rec_imgs = []
             with tf.train.MonitoredTrainingSession(checkpoint_dir=self.checkpoint_dir) as sess_new:
-                imgs_value = sess_new.run(imgs)
-                reconstruction = sess_new.run(ae, feed_dict={x: imgs_value})
-                rec_imgs.append(imgs_value)
+                data_pair = sess_new.run(data_in)
+                img_x, img_label = data_pair['x'], data_pair['label']
+                reconstruction = sess_new.run(ae, feed_dict={x: img_x})
+                rec_imgs.append(img_x)
                 rec_imgs.append(reconstruction)
             from lib.utils import to_png
             ori_png = to_png(rec_imgs[0][0])
