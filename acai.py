@@ -139,7 +139,7 @@ class ACAI(train.AE):
             global_step = tf.train.get_or_create_global_step()
             with tf.train.MonitoredTrainingSession(checkpoint_dir=self.checkpoint_dir) as sess_new:
                 imgs_input = sess_new.run(imgs_cast)
-                encoded_imgs = sess_new.run(ae, feed_dict={x: imgs_input})
+                encoded_imgs = sess_new.run(encode, feed_dict={x: imgs_input})
         
         return encoded_imgs
 
