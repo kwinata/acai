@@ -125,42 +125,23 @@ class ACAI(train.AE):
         return ops
 
 
-    def encode(self, latent, depth, scales):
+    def encode(self, imgs, latent, depth, scales):
         with tf.Graph().as_default():
-            data_in = self.train_data.make_one_shot_iterator().get_next()
+            imgs_tensor = tf.constant(imgs)
+            imgs_cast = tf.cast(imgs, tf.float32) * (2.0/255) - 1.0
             x = tf.placeholder(tf.float32,
                                [None, self.height, self.width, self.colors], 'x')
-            l = tf.placeholder(tf.float32, [None, self.nclass], 'label')
-            h = tf.placeholder(
-                tf.float32,
-                [None, self.height >> scales, self.width >> scales, latent], 'h')
 
             def encoder(x):
                 return layers.encoder(x, scales, depth, latent, 'ae_enc')
 
-            def decoder(h):
-                v = layers.decoder(h, scales, depth, self.colors, 'ae_dec')
-                return v
-
-
             encode = encoder(x)
-            decode = decoder(h)
-            ae = decoder(encode) 
             global_step = tf.train.get_or_create_global_step()
-            rec_imgs = []
             with tf.train.MonitoredTrainingSession(checkpoint_dir=self.checkpoint_dir) as sess_new:
-                data_pair = sess_new.run(data_in)
-                img_x, img_label = data_pair['x'], data_pair['label']
-                reconstruction = sess_new.run(ae, feed_dict={x: img_x})
-                rec_imgs.append(img_x)
-                rec_imgs.append(reconstruction)
-            from lib.utils import to_png
-            ori_png = to_png(rec_imgs[0][0])
-            with open("ori_img.png", "wb") as f:
-                f.write(ori_png)
-            rec_png = to_png(rec_imgs[1][0])
-            with open("example_img.png", "wb") as f:
-                f.write(rec_png)
+                imgs_input = sess_new.run(imgs_cast)
+                encoded_imgs = sess_new.run(ae, feed_dict={x: imgs_input})
+        
+        return encoded_imgs
 
 def main(argv):
     del argv  # Unused.
