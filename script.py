@@ -46,6 +46,4 @@ model = ACAI(
     reg=FLAGS.reg
 )
 
-print model
-
-model.encode(latent=FLAGS.latent, depth=FLAGS.depth, scales = scales)
+model.init_encode(latent=FLAGS.latent, depth=FLAGS.depth, scales=scales)
