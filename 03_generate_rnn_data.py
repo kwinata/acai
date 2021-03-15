@@ -42,6 +42,7 @@ model = ACAI(
     advdepth=FLAGS.advdepth or FLAGS.depth,
     reg=FLAGS.reg
 )
+model.init_encode(latent=FLAGS.latent, depth=FLAGS.depth, scales = scales)
 
 
 def get_filelist(N):
@@ -68,7 +69,7 @@ def encode_episode(episode):
     done = done.astype(int)  
     reward = np.where(reward>0, 1, 0) * np.where(done==0, 1, 0)
 
-    mu = model.encode(obs, latent=FLAGS.latent, depth=FLAGS.depth, scales = scales)
+    mu = model.encode(obs)
     log_var = np.full(mu.shape, -1000.0)
 
     initial_mu = mu[0, :]
@@ -89,9 +90,9 @@ def main(args):
     initial_mus = []
     initial_log_vars = []
 
-    for file in filelist:
+    for i, file in enumerate(filelist[:512]):
       try:
-      
+        print('PROCESSING {}'.format(i))
         rollout_data = np.load(ROLLOUT_DIR_NAME + file)
 
         mu, log_var, action, reward, done, initial_mu, initial_log_var = encode_episode(rollout_data)

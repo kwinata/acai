@@ -124,11 +124,12 @@ class ACAI(train.AE):
 
         return ops
 
-
-    def encode(self, imgs, latent, depth, scales):
-        with tf.Graph().as_default():
-            imgs_tensor = tf.constant(imgs)
-            imgs_cast = tf.cast(imgs, tf.float32) * (2.0/255) - 1.0
+    def init_encode(self, latent, depth, scales):
+        self.encode_graph = tf.Graph()
+        with self.encode_graph.as_default():
+            imgs_tensor = tf.placeholder(tf.int32, 
+                    [None, self.height, self.width, self.colors], 'imgs_tensor')
+            imgs_cast = tf.cast(imgs_tensor, tf.float32) * (2.0/255) - 1.0
             x = tf.placeholder(tf.float32,
                                [None, self.height, self.width, self.colors], 'x')
 
@@ -137,12 +138,19 @@ class ACAI(train.AE):
 
             encode = encoder(x)
             global_step = tf.train.get_or_create_global_step()
-            with tf.train.MonitoredTrainingSession(checkpoint_dir=self.checkpoint_dir) as sess_new:
-                imgs_input = sess_new.run(imgs_cast)
-                encoded_imgs = sess_new.run(encode, feed_dict={x: imgs_input})
+            
+            self.imgs_tensor = imgs_tensor
+            self.imgs_cast_op = imgs_cast
+            self.encode_x = x
+            self.encode_op = encode
         
-        return encoded_imgs
+            self.encode_session = tf.train.MonitoredTrainingSession(checkpoint_dir=self.checkpoint_dir)
 
+    def encode(self, imgs):
+        assert getattr(self, 'encode_session')
+        imgs_input = self.encode_session.run(self.imgs_cast_op, feed_dict={self.imgs_tensor: imgs})
+        return self.encode_session.run(self.encode_op, feed_dict={self.encode_x: imgs_input})
+            
 def main(argv):
     del argv  # Unused.
     batch = FLAGS.batch
